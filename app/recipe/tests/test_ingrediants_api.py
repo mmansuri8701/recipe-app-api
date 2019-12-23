@@ -58,3 +58,22 @@ class PrivateTagsApiTests(TestCase):
 		self.assertEqual(result.status_code , status.HTTP_200_OK)
 		self.assertEqual(len(result.data), 1)
 		self.assertEqual(result.data[0]['name'], ingrediant.name)
+		
+		
+	def test_create_ingrediant_successful(self):
+		"""Testing creating a new ingrediant"""
+		payload = {'name' : 'Test ingrediant'}
+		self.client.post(INGREDIANT_URL, payload)
+		exists = Ingrediant.objects.filter(
+			user = self.user,
+			name=payload['name']
+		).exists()
+		self.assertTrue(exists)
+		
+	def test_create_ingrediant_invlid(self):
+		"""Test creating a new ingrediant with invalid payload"""
+		payload={'name': ''}
+		result = self.client.post(INGREDIANT_URL, payload)
+		self.assertEqual(result.status_code, status.HTTP_400_BAD_REQUEST)
+		
+		
