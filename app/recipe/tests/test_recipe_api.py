@@ -5,11 +5,23 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Recipe
+from core.models import Recipe, Tag, Ingrediant
 
-from recipe.serializers import RecipeSerializer
+from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPES_URL = reverse('recipe:recipe-list')
+
+def detail_url(recipe_id):
+	"""Return recipe URL"""
+	return reverse('recipe:recipe-detail', args=[recipe_id])
+
+def sample_tag(user, name='Main course'):
+	"""Creat and return a sample tag"""
+	return Tag.objects.create(user=user, name=name)
+	
+def sample_ingrediant(user, name='Cinamon'):
+	"""Create and return sampel integrediant"""
+	return Ingrediant.objects.create(user=user, name=name)
 
 def sample_recipe(user, **params):
 	"""Create and return a sample recipe"""
@@ -72,3 +84,18 @@ class PrivateRecipeApiTests(TestCase):
 		self.assertEqual(result.status_code , status.HTTP_200_OK)
 		self.assertEqual(len(result.data), 1)
 		self.assertEqual(result.data, serializer.data)
+	
+	def test_view_recipe_detail(self):
+		"""Test viewing recipe detail"""
+		recipe = sample_recipe(user=self.user)
+		recipe.tags.add(sample_tag(user=self.user))
+		recipe.ingrediants.add(sample_ingrediant(user=self.user))
+		
+		url = detail_url(recipe.id)
+		result = self.client.get(url)
+		
+		serializer = RecipeDetailSerializer(recipe)
+		self.assertEqual(result.data, serializer.data)
+		
+		
+		
